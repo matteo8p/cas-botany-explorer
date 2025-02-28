@@ -7,7 +7,7 @@
     "dev:frontend": "next dev --turbopack",
     "dev:backend": "convex dev",
     "predev": "convex dev --until-success && convex dashboard",
-    "build": "npx convex deploy --cmd 'npm run build'",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
