@@ -5,6 +5,27 @@ import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import OpenAI from "openai";
 
+interface PlantAnalysis {
+  taxonomic_name: string | null;
+  common_name: string | null;
+  family: string | null;
+  genus: string | null;
+  species: string | null;
+  subspecies: string | null;
+  variety: string | null;
+  elevation: string | null;
+  form: string | null;
+  plant_image_url: string | null;
+  geographic_location: string | null;
+  collection_date: string | null;
+  collector: string | null;
+  herbarium_code: string | null;
+  accession_number: string | null;
+  habitat: string | null;
+  description: string | null;
+  notes: string | null;
+}
+
 const prompt = `
 You will extract the text information about the plant scan. Return the information in a JSON format.
 
@@ -30,6 +51,41 @@ The JSON should have the following fields:
 
 The JSON should be formatted as a JSON object, and return the object in {} brackets only.
 `;
+
+const cleanAndValidateJSON = (jsonString: string): string => {
+  try {
+    // Try to parse the JSON string
+    const parsed = JSON.parse(jsonString) as Partial<PlantAnalysis>;
+
+    // Create a clean object with all expected fields
+    const cleanObject: PlantAnalysis = {
+      taxonomic_name: parsed.taxonomic_name || null,
+      common_name: parsed.common_name || null,
+      family: parsed.family || null,
+      genus: parsed.genus || null,
+      species: parsed.species || null,
+      subspecies: parsed.subspecies || null,
+      variety: parsed.variety || null,
+      elevation: parsed.elevation || null,
+      form: parsed.form || null,
+      plant_image_url: parsed.plant_image_url || null,
+      geographic_location: parsed.geographic_location || null,
+      collection_date: parsed.collection_date || null,
+      collector: parsed.collector || null,
+      herbarium_code: parsed.herbarium_code || null,
+      accession_number: parsed.accession_number || null,
+      habitat: parsed.habitat || null,
+      description: parsed.description || null,
+      notes: parsed.notes || null,
+    };
+
+    // Convert back to a clean JSON string
+    return JSON.stringify(cleanObject);
+  } catch (e) {
+    console.error("Failed to parse or clean JSON:", e);
+    throw new Error("Invalid JSON format received from OpenAI");
+  }
+};
 
 export const analyzeImage = action({
   args: {
@@ -65,21 +121,29 @@ export const analyzeImage = action({
         max_tokens: 500,
       });
 
-      const analysis =
-        response.choices[0]?.message?.content || "No analysis available";
+      const rawAnalysis = response.choices[0]?.message?.content;
+      if (!rawAnalysis) {
+        throw new Error("No analysis received from OpenAI");
+      }
 
-      // Update the image with the analysis
+      // Clean and validate the JSON before saving
+      const cleanJSON = cleanAndValidateJSON(rawAnalysis);
+
+      // Update the image with the clean JSON
       await ctx.runMutation(api.images.updateAnalysis, {
         imageId: args.imageId,
-        analysis,
+        analysis: cleanJSON,
       });
 
-      return analysis;
+      return cleanJSON;
     } catch (error) {
       console.error("Error analyzing image:", error);
-      const errorMessage = "Failed to analyze image";
+      const errorMessage = JSON.stringify({
+        error: "Failed to analyze image",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
 
-      // Update the image with the error message
+      // Update the image with the error message as JSON
       await ctx.runMutation(api.images.updateAnalysis, {
         imageId: args.imageId,
         analysis: errorMessage,
