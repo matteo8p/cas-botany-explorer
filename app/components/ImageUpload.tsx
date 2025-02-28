@@ -3,8 +3,36 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { UploadCloud, Image as ImageIcon, Edit2, Save, X } from "lucide-react";
+import {
+  UploadCloud,
+  Image as ImageIcon,
+  Edit2,
+  Save,
+  X,
+  Download,
+} from "lucide-react";
 import { Id } from "../../convex/_generated/dataModel";
+
+interface AnalysisData {
+  taxonomic_name?: string;
+  common_name?: string;
+  family?: string;
+  genus?: string;
+  species?: string;
+  subspecies?: string;
+  variety?: string;
+  elevation?: string;
+  form?: string;
+  geographic_location?: string;
+  collection_date?: string;
+  collector?: string;
+  herbarium_code?: string;
+  accession_number?: string;
+  habitat?: string;
+  description?: string;
+  notes?: string;
+  plant_image_url?: string;
+}
 
 export default function ImageUpload() {
   const generateUploadUrl = useMutation(api.images.generateUploadUrl);
@@ -15,6 +43,80 @@ export default function ImageUpload() {
   const [dragActive, setDragActive] = useState(false);
   const [editingId, setEditingId] = useState<Id<"images"> | null>(null);
   const [editedAnalysis, setEditedAnalysis] = useState("");
+
+  const handleExportCSV = () => {
+    if (!images?.length) return;
+
+    // CSV Headers
+    const headers = [
+      "Image Name",
+      "Taxonomic Name",
+      "Common Name",
+      "Family",
+      "Genus",
+      "Species",
+      "Subspecies",
+      "Variety",
+      "Elevation",
+      "Form",
+      "Geographic Location",
+      "Collection Date",
+      "Collector",
+      "Herbarium Code",
+      "Accession Number",
+      "Habitat",
+      "Description",
+      "Notes",
+      "Image URL",
+    ].join(",");
+
+    // Convert each image's analysis to CSV row
+    const csvRows = images.map((image) => {
+      let analysisData: AnalysisData = {};
+      try {
+        analysisData = JSON.parse(image.analysis) as AnalysisData;
+      } catch (e) {
+        console.warn(`Failed to parse analysis for image ${image.name}:`, e);
+        analysisData = { description: image.analysis };
+      }
+
+      const row = [
+        image.name,
+        analysisData.taxonomic_name || "",
+        analysisData.common_name || "",
+        analysisData.family || "",
+        analysisData.genus || "",
+        analysisData.species || "",
+        analysisData.subspecies || "",
+        analysisData.variety || "",
+        analysisData.elevation || "",
+        analysisData.form || "",
+        analysisData.geographic_location || "",
+        analysisData.collection_date || "",
+        analysisData.collector || "",
+        analysisData.herbarium_code || "",
+        analysisData.accession_number || "",
+        analysisData.habitat || "",
+        analysisData.description || "",
+        analysisData.notes || "",
+        image.url || "",
+      ].map((field) => `"${String(field).replace(/"/g, '""')}"`);
+
+      return row.join(",");
+    });
+
+    // Combine headers and rows
+    const csvContent = [headers, ...csvRows].join("\n");
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "plant_analysis.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -57,10 +159,19 @@ export default function ImageUpload() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Plant Analysis</h1>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-500">
               {images?.length || 0} images
             </span>
+            {images && images.length > 0 && (
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export CSV</span>
+              </button>
+            )}
           </div>
         </div>
 
