@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { UploadCloud, Image as ImageIcon } from "lucide-react";
+import { UploadCloud, Image as ImageIcon, Edit2, Save, X } from "lucide-react";
+import { Id } from "../../convex/_generated/dataModel";
 
 export default function ImageUpload() {
   const generateUploadUrl = useMutation(api.images.generateUploadUrl);
   const saveImage = useMutation(api.images.saveImage);
+  const updateAnalysis = useMutation(api.images.updateAnalysis);
   const images = useQuery(api.images.getImages);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [editingId, setEditingId] = useState<Id<"images"> | null>(null);
+  const [editedAnalysis, setEditedAnalysis] = useState("");
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -122,14 +126,65 @@ export default function ImageUpload() {
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-200" />
                 </div>
                 <div className="p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <ImageIcon className="w-4 h-4 text-gray-400" />
-                    <h3 className="font-medium text-gray-900">{image.name}</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <ImageIcon className="w-4 h-4 text-gray-400" />
+                      <h3 className="font-medium text-gray-900">
+                        {image.name}
+                      </h3>
+                    </div>
+                    {editingId !== image._id && (
+                      <button
+                        onClick={() => {
+                          setEditingId(image._id);
+                          setEditedAnalysis(image.analysis);
+                        }}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96">
-                    <pre className="text-sm font-mono text-gray-700 whitespace-pre-wrap">
-                      {image.analysis}
-                    </pre>
+                    {editingId === image._id ? (
+                      <div className="space-y-4">
+                        <textarea
+                          value={editedAnalysis}
+                          onChange={(e) => setEditedAnalysis(e.target.value)}
+                          className="w-full h-64 p-2 text-sm font-mono text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingId(null);
+                              setEditedAnalysis("");
+                            }}
+                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center space-x-1"
+                          >
+                            <X className="w-4 h-4" />
+                            <span>Cancel</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              await updateAnalysis({
+                                imageId: image._id,
+                                analysis: editedAnalysis,
+                              });
+                              setEditingId(null);
+                              setEditedAnalysis("");
+                            }}
+                            className="px-3 py-1 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded-md transition-colors flex items-center space-x-1"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Save</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <pre className="text-sm font-mono text-gray-700 whitespace-pre-wrap">
+                        {image.analysis}
+                      </pre>
+                    )}
                   </div>
                 </div>
               </div>
