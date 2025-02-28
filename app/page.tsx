@@ -5,18 +5,36 @@ import ImageUpload from "./components/ImageUpload";
 export default function Home() {
   return (
     <>
-      <main className="p-8 flex flex-col gap-8">
-        <h1 className="text-4xl font-bold text-center">CAS Zooniverse Demo</h1>
-        <p className="text-center text-gray-500">
-          Matthew Wang & Marcelo Jimenez
-        </p>
-        <div className="flex justify-center">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/en/2/26/California_Academy_of_Sciences_Logo.png"
-            alt="CAS Logo"
-            className="w-48 h-auto"
-          />
+      <header className="bg-gradient-to-b from-gray-50 to-white py-12 border-b">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="flex flex-col items-center space-y-8">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/en/2/26/California_Academy_of_Sciences_Logo.png"
+              alt="CAS Logo"
+              className="w-48 h-auto"
+            />
+            <div className="text-center space-y-4">
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                CAS Zooniverse Demo
+              </h1>
+              <p className="text-lg text-gray-600">
+                Plant Analysis & Classification
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                <span>By</span>
+                <a href="#" className="hover:text-blue-600 transition-colors">
+                  Matthew Wang
+                </a>
+                <span>&</span>
+                <a href="#" className="hover:text-blue-600 transition-colors">
+                  Marcelo Jimenez
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
+      </header>
+      <main className="container mx-auto px-4 py-8">
         <ImageUpload />
       </main>
     </>

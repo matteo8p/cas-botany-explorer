@@ -293,7 +293,9 @@ export default function ImageUpload() {
                       </div>
                     ) : (
                       <pre className="text-sm font-mono text-gray-700 whitespace-pre-wrap">
-                        {JSON.stringify(JSON.parse(image.analysis), null, 2)}
+                        {image.analysis.length > 20
+                          ? JSON.stringify(JSON.parse(image.analysis), null, 2)
+                          : image.analysis}
                       </pre>
                     )}
                   </div>
