@@ -95,7 +95,7 @@ export const analyzeImage = action({
   handler: async (ctx, args) => {
     try {
       const openai = new OpenAI({
-        apiKey: "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",
+        apiKey: process.env.OPENAI_API_KEY,
       });
 
       const response = await openai.chat.completions.create({
