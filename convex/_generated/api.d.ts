@@ -14,9 +14,6 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as botany from "../botany.js";
-import type * as images from "../images.js";
-import type * as myFunctions from "../myFunctions.js";
-import type * as vision from "../vision.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -28,9 +25,6 @@ import type * as vision from "../vision.js";
  */
 declare const fullApi: ApiFromModules<{
   botany: typeof botany;
-  images: typeof images;
-  myFunctions: typeof myFunctions;
-  vision: typeof vision;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
