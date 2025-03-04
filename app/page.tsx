@@ -1,6 +1,6 @@
 "use client";
 
-import ImageUpload from "./components/ImageUpload";
+import DisplayPlants from "./components/display-plants";
 
 export default function Home() {
   return (
@@ -15,10 +15,10 @@ export default function Home() {
             />
             <div className="text-center space-y-4">
               <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                CAS Zooniverse Demo
+                CAS Botany Viewer
               </h1>
               <p className="text-lg text-gray-600">
-                Plant Analysis & Classification
+                Cool Plants from the CAS Herbarium
               </p>
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                 <span>By</span>
@@ -35,7 +35,7 @@ export default function Home() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
-        <ImageUpload />
+        <DisplayPlants />
       </main>
     </>
   );
