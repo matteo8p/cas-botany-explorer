@@ -9,10 +9,7 @@ import { api } from "../convex/_generated/api";
 import { extractImageUrl } from "@/lib/utils";
 import type { Doc } from "../convex/_generated/dataModel";
 
-// Use the Doc type with the table name to get the correct type
 type Plant = Doc<"botany">;
-
-// Format date strings
 
 export default function Home() {
   const plants = useQuery(api.botany.getPlants);
