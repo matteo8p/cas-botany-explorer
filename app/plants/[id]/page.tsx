@@ -1,17 +1,13 @@
+"use client";
 import PlantDetail from "@/app/components/plant-detail";
+import { useParams } from "next/navigation";
 
-interface PlantPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function PlantPage({ params }: PlantPageProps) {
-  const { id } = params;
+export default function PlantPage() {
+  const params = useParams();
 
   return (
     <main className="min-h-screen bg-background">
-      <PlantDetail id={id} />
+      <PlantDetail id={params.id as string} />
     </main>
   );
 }
