@@ -1,82 +1,102 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { extractImageUrl } from "@/lib/utils";
-import type { Doc } from "../convex/_generated/dataModel";
-
-type Plant = Doc<"botany">;
+import { PlantCard } from "./components/plant-card";
+import Image from "next/image";
+import { Search } from "lucide-react";
+import { useState, useMemo } from "react";
 
 export default function Home() {
-  const plants = useQuery(api.botany.getPlants);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredPlants = plants ?? [];
-  const renderCard = (plant: Plant) => {
-    const imageUrl = extractImageUrl(plant.img, "1000");
+  const searchResults = useQuery(api.botany.searchPlants, {
+    query: searchQuery,
+    category: "all",
+    limit: 30,
+  });
+
+  const plants = searchResults ?? [];
+
+  const renderSearchBar = () => {
     return (
-      <Link href={`/plants/${plant._id}`} key={plant._id} className="group">
-        <Card className="overflow-hidden h-full transition-all hover:shadow-md">
-          <div className="relative aspect-square">
-            {imageUrl && (
-              <Image
-                src={imageUrl}
-                alt={plant.fullName}
-                fill
-                className="object-cover transition-transform group-hover:scale-105"
-              />
-            )}
+      <div className="w-full max-w-2xl">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search specimens by name, location, or collector..."
+            className="w-full h-14 pl-12 pr-4 rounded-full border border-input bg-background shadow-sm hover:border-muted-foreground/25 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <div className="mt-2 text-sm text-muted-foreground">
+            {`Found ${searchResults?.length} results`}
           </div>
-          <CardContent className="p-4">
-            <h2 className="text-lg font-semibold italic">{plant.fullName}</h2>
-            <p className="text-sm text-muted-foreground mb-2">{plant.family}</p>
-
-            <div className="flex flex-wrap gap-1 mb-3">
-              {plant.typeStatusName && (
-                <Badge variant="secondary" className="text-xs">
-                  {plant.typeStatusName}
-                </Badge>
-              )}
-              <Badge variant="outline" className="text-xs">
-                {plant.country}
-              </Badge>
-            </div>
-
-            <div className="text-sm">
-              <p className="truncate">
-                {plant.localityName} {plant.state}
-              </p>
-              <p className="text-muted-foreground text-xs mt-1">
-                Collected: {plant.startDate.toString()}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
+        )}
+      </div>
     );
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Plant Collection</h1>
-          <p className="text-muted-foreground">
-            Browse through our botanical specimens
+    <div className="min-h-screen flex flex-col">
+      {/* Hero Section */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4 py-16">
+        <div className="flex flex-col items-center gap-6 max-w-2xl text-center">
+          <Image
+            src="https://upload.wikimedia.org/wikipedia/en/2/26/California_Academy_of_Sciences_Logo.png"
+            alt="California Academy of Sciences"
+            width={300}
+            height={100}
+            className="mb-4"
+            priority
+          />
+          <h1 className="text-4xl font-light tracking-tight">
+            Botanical Collections Database
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Explore our digital herbarium specimens from around the world
           </p>
         </div>
+
+        {renderSearchBar()}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {plants === undefined ? (
-          // Loading state
-          <p>Loading plants...</p>
-        ) : (
-          filteredPlants.map((plant) => renderCard(plant))
-        )}
+      {/* Results Section */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="border-b mb-6 pb-4">
+          <p className="text-sm text-muted-foreground">
+            {searchQuery
+              ? `Showing ${plants.length} matching specimens`
+              : `Showing ${plants.length} specimens`}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {plants === undefined ? (
+            <div className="col-span-full flex justify-center py-12">
+              <div className="animate-pulse text-muted-foreground">
+                Loading specimens...
+              </div>
+            </div>
+          ) : plants.length === 0 ? (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              No specimens found matching your search.
+            </div>
+          ) : (
+            plants.map((plant) => <PlantCard key={plant._id} plant={plant} />)
+          )}
+        </div>
       </div>
     </div>
   );

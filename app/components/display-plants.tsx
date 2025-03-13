@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
 export default function DisplayPlants() {
-  const plants = useQuery(api.botany.getPlants);
+  const plants = useQuery(api.botany.getPlants, { qty: 30 });
 
   if (!plants) {
     return (
