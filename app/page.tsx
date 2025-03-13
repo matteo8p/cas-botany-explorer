@@ -41,7 +41,7 @@ export default function Home() {
         </div>
         {searchQuery && (
           <div className="mt-2 text-sm text-muted-foreground">
-            {`Found ${searchResults?.length} results`}
+            {`Limited to ${searchResults?.length} results`}
           </div>
         )}
       </div>
