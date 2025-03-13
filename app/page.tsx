@@ -5,13 +5,24 @@ import { api } from "../convex/_generated/api";
 import { PlantCard } from "./components/plant-card";
 import Image from "next/image";
 import { Search } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
+  // Debounce the search query by 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Use the debounced query for the actual API call
   const searchResults = useQuery(api.botany.searchPlants, {
-    query: searchQuery,
+    query: debouncedQuery,
     category: "all",
     limit: 30,
   });
@@ -32,7 +43,10 @@ export default function Home() {
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => {
+                setSearchQuery("");
+                setDebouncedQuery(""); // Clear both states
+              }}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               Clear
@@ -41,7 +55,9 @@ export default function Home() {
         </div>
         {searchQuery && (
           <div className="mt-2 text-sm text-muted-foreground">
-            {`Limited to ${searchResults?.length} results`}
+            {debouncedQuery !== searchQuery
+              ? "Typing..."
+              : `Found ${searchResults?.length ?? 0} results`}
           </div>
         )}
       </div>
